@@ -64,6 +64,9 @@ public:
 		{
 			release();
 			move(std::move(rhv));
+#ifdef _DEBUG
+			initialized_ = 1;
+#endif
 		}
 		return *this;
 	}
