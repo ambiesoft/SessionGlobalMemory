@@ -8,9 +8,16 @@
 #include "SessionGlobalMemory.h"
 using namespace Ambiesoft;
 
-#if _MSC_VER < 1600		// less than VC2010
+
+
+#if _MSC_VER < 1500
 #define _countof(a) (sizeof(a)/sizeof(a[0]))
 #endif 
+
+#if _MSC < 1600
+#define static_assert(s,t) assert(s)
+#endif
+
 struct Data {
 	int d[1024];
 	int checksum_;
@@ -101,11 +108,15 @@ int main(int argc, char* argv[])
 	if (argc > 1 )
 	{
 		if (strcmp(argv[1], "test2") == 0)
+		{
 			test2();
+			return 0;
+		}
 		else if (strcmp(argv[1], "test3") == 0)
+		{
 			test3();
-
-		return 0;
+			return 0;
+		}
 	}
 
 	// test.exe -reader 100

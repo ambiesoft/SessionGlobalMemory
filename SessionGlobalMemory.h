@@ -2,6 +2,10 @@
 
 #include <cassert>
 
+#define size_t size_is_not_used_since_its_size_is_different_between_32_and_64
+
+typedef unsigned int size_t32;
+
 #ifdef _DEBUG
 #define AMBIESOFT_VERIFY(e) assert(e)
 #define AMBIESOFT_VERIFY_ZERO(e) assert(0==(e))
@@ -127,7 +131,7 @@ protected:
 		p_ = NULL;
 		m_ = NULL;
 
-		size_t len = lstrlenA(pName);
+		size_t32 len = lstrlenA(pName);
 		m_pName = (LPSTR)LocalAlloc(LMEM_FIXED, len + sizeof(char));
 		lstrcpyA(m_pName, pName);
 
@@ -214,10 +218,10 @@ protected:
 		memcpy(p_, &t, size());
 	}
 
-	virtual size_t size() const {
+	virtual size_t32 size() const {
 		return sizeof(T);
 	}
-	virtual size_t internalsize() const {
+	virtual size_t32 internalsize() const {
 		return size();
 	}
 
@@ -259,52 +263,53 @@ public:
 };
 
 
-class CDynamicSessionGlobalMemory : public CSessionGlobalMemory<size_t>
+class CDynamicSessionGlobalMemory : public CSessionGlobalMemory<size_t32>
 {
 private:
-	size_t size_;
+	size_t32 size_;
 public:
 	// creator
-	explicit CDynamicSessionGlobalMemory(LPCSTR pName, size_t size) : CSessionGlobalMemory<size_t>(pName) {
+	explicit CDynamicSessionGlobalMemory(LPCSTR pName, size_t32 size) : CSessionGlobalMemory<size_t32>(pName) {
 		size_ = size;
 	}
 
 	// user
-	explicit CDynamicSessionGlobalMemory(LPCSTR pName) : CSessionGlobalMemory<size_t>(pName) {
+	explicit CDynamicSessionGlobalMemory(LPCSTR pName) : CSessionGlobalMemory<size_t32>(pName) {
 		size_ = -1;
 	}
 
 	~CDynamicSessionGlobalMemory() {
 
 	}
-	size_t size() const {
+	size_t32 size() const {
 		if (size_ == -1)
 		{
 			CDynamicSessionGlobalMemory tmp(m_pName, sizeof(size_));
-			tmp.internalget(const_cast<size_t*>(&size_));
+			tmp.internalget(const_cast<size_t32*>(&size_));
 		}
 		return size_;
 	}
-	virtual size_t internalsize() const {
-		return size() + sizeof(size_);
+	virtual size_t32 internalsize() const {
+		return sizeof(size_) + size();
 	}
 	void get(unsigned char* p) {
 		ensure();
 		Locker l(m_);
 		memcpy(p, (unsigned char*)(p_) + sizeof(size_), size());
 	}
-	void internalget(size_t* ps) {
+	void internalget(size_t32* ps) {
 		ensure();
 		Locker l(m_);
-		*ps = *(size_t*)p_;
+		*ps = *(size_t32*)p_;
 	}
 
 	void set(const unsigned char* p) {
-		// user can not set
-		assert(size() != -1);
+		// user can not set before get
+		assert(size_ != -1);
+
 		ensure();
 		Locker l(m_);
-		*(size_t*)p_ = size();
+		*(size_t32*)p_ = size();
 		memcpy((unsigned char*)(p_) + sizeof(size_), p, size());
 	}
 };
@@ -312,3 +317,5 @@ public:
 
 
 }  // namespace
+
+#undef size_t
