@@ -71,7 +71,7 @@ public:
 		return *this;
 	}
 
-	~CSessionGlobalMemory() {
+	virtual ~CSessionGlobalMemory() {
 		release();
 	}
 	void move(MYT&& rhv) {
@@ -101,10 +101,10 @@ public:
 		return *((T*)p_);
 	}
 
-	void get(T& t) {
+	virtual void get(T& t) {
 		ensure();
 		Locker l(m_);
-		memcpy(&t, p_, sizeof(t));
+		memcpy(&t, p_, size());
 	}
 
 	MYT& operator =(const T& t) {
@@ -112,6 +112,9 @@ public:
 		return *this;
 	}
 
+	std::string getName() const {
+		return m_pName;
+	}
 protected:
 	void* p_;
 
@@ -172,7 +175,7 @@ protected:
 				INVALID_HANDLE_VALUE,
 				NULL,
 				PAGE_READWRITE,
-				0, sizeof(T),
+				0, internalsize(),
 				m_pName);
 			assert(h_);
 			if (h_ && GetLastError() != ERROR_ALREADY_EXISTS)
@@ -186,7 +189,7 @@ protected:
 				h_,
 				FILE_MAP_READ | FILE_MAP_WRITE,
 				0, 0,
-				sizeof(T));
+				internalsize());
 			assert(p_);
 		}
 
@@ -195,7 +198,7 @@ protected:
 			Locker l(m_);
 			if (first)
 			{
-				memset(p_, 0, sizeof(T));
+				memset(p_, 0, internalsize());
 				first = false;
 			}
 		}
@@ -205,13 +208,19 @@ protected:
 	//}
 
 
-	void set(const T& t) {
+	virtual void set(const T& t) {
 		ensure();
 		Locker l(m_);
-		memcpy(p_, &t, sizeof(t));
+		memcpy(p_, &t, size());
 	}
 
-private:
+	virtual size_t size() const {
+		return sizeof(T);
+	}
+	virtual size_t internalsize() const {
+		return size();
+	}
+
 	class Locker {
 	public:
 		HANDLE m_;
@@ -246,6 +255,57 @@ public:
 	T* operator &() {
 		ensure();
 		return (T*)p_;
+	}
+};
+
+
+class CDynamicSessionGlobalMemory : public CSessionGlobalMemory<size_t>
+{
+private:
+	size_t size_;
+public:
+	// creator
+	explicit CDynamicSessionGlobalMemory(LPCSTR pName, size_t size) : CSessionGlobalMemory<size_t>(pName) {
+		size_ = size;
+	}
+
+	// user
+	explicit CDynamicSessionGlobalMemory(LPCSTR pName) : CSessionGlobalMemory<size_t>(pName) {
+		size_ = -1;
+	}
+
+	~CDynamicSessionGlobalMemory() {
+
+	}
+	size_t size() const {
+		if (size_ == -1)
+		{
+			CDynamicSessionGlobalMemory tmp(m_pName, sizeof(size_));
+			tmp.internalget(const_cast<size_t*>(&size_));
+		}
+		return size_;
+	}
+	virtual size_t internalsize() const {
+		return size() + sizeof(size_);
+	}
+	void get(unsigned char* p) {
+		ensure();
+		Locker l(m_);
+		memcpy(p, (unsigned char*)(p_) + sizeof(size_), size());
+	}
+	void internalget(size_t* ps) {
+		ensure();
+		Locker l(m_);
+		*ps = *(size_t*)p_;
+	}
+
+	void set(const unsigned char* p) {
+		// user can not set
+		assert(size() != -1);
+		ensure();
+		Locker l(m_);
+		*(size_t*)p_ = size();
+		memcpy((unsigned char*)(p_) + sizeof(size_), p, size());
 	}
 };
 

@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include <process.h>
+#include <cassert>
+
 #include "SessionGlobalMemory.h"
 using namespace Ambiesoft;
 
@@ -92,8 +94,20 @@ void testwriter(int span)
 	}
 }
 
+void test2();
+void test3();
 int main(int argc, char* argv[])
 {
+	if (argc > 1 )
+	{
+		if (strcmp(argv[1], "test2") == 0)
+			test2();
+		else if (strcmp(argv[1], "test3") == 0)
+			test3();
+
+		return 0;
+	}
+
 	// test.exe -reader 100
 	if (argc > 1)
 	{
@@ -146,7 +160,9 @@ int main(int argc, char* argv[])
 			case '0': case '1':
 			{
 				// http://www.cplusplus.com/forum/beginner/103383/
-				char* comspec = getenv("COMSPEC");
+				char comspec[MAX_PATH]; comspec[0] = 0;
+				size_t t;
+				getenv_s(&t, comspec, "COMSPEC");
 				_spawnl(_P_NOWAIT // flags
 					, comspec   // cmd line
 					, comspec   // arg[0] to main (of target)
@@ -218,3 +234,73 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+
+
+template<int LENGTH>
+struct FixedLengthStruct{
+	unsigned char data[LENGTH];
+	int getLength() const {
+		return LENGTH;
+	}
+};
+
+struct VariableLengthStructBase {
+protected:
+	int length_;
+	VariableLengthStructBase(){}
+public:
+	int getLength() const {
+		return length_;
+	}
+};
+
+template<int LENGTH>
+struct VariableLengthStruct :VariableLengthStructBase {
+public:
+	unsigned char data[LENGTH];
+	VariableLengthStruct() {
+		length_ = LENGTH;
+	}
+
+	unsigned char* getData() {
+		return data;
+	}
+
+};
+
+void test2()
+{
+	static_assert(1000 == sizeof(FixedLengthStruct<1000>), "not 1000");
+	assert(1000 == sizeof(FixedLengthStruct<1000>));
+
+	CSessionGlobalMemory<FixedLengthStruct<1000> > sgData("thousandbyte");
+
+	FixedLengthStruct<1000> data;
+	sgData.get(data);
+	sgData.getName();
+}
+
+void test3()
+{
+	// setter
+	CDynamicSessionGlobalMemory sgDyn("dyn1000", 1000);
+	unsigned char* p = (unsigned char*)malloc(1000);
+	p[0] = 11;
+	p[1] = 12;
+	p[2] = 13;
+
+	p[997] = 97;
+	p[998] = 98;
+	p[999] = 99;
+	sgDyn.set(p);
+
+
+	{
+		// getter
+		CDynamicSessionGlobalMemory sgDynUser("dyn1000");
+		unsigned char* p = (unsigned char*)malloc(sgDynUser.size());
+		sgDynUser.get(p);
+		assert(p[0] == 11);
+		assert(p[999] == 99);
+	}
+}
