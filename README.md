@@ -10,6 +10,7 @@ CSessionGlobalMemory<Data> sgData("sgData");
 This creates a Shared Memory named "sgData" and Mutex for exclusive access named "sgData_Mutex". Other processes can create same name object that can access this *Data*. *Data* must not include a pointer since it is invalid between processes. Offcourse basic types like *int* or *HWND* can be used as type.
 
 # Licence
+```
 // Copyright (c) 2017 Ambiesoft. 
 //
 // Redistribution and use in source and binary forms, with or without
@@ -38,3 +39,4 @@ This creates a Shared Memory named "sgData" and Mutex for exclusive access named
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
