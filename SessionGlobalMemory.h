@@ -135,7 +135,7 @@ namespace Ambiesoft {
 
 		virtual void get(T& t) {
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			memcpy(&t, p_, size());
 		}
 
@@ -226,7 +226,7 @@ namespace Ambiesoft {
 
 			if (first)
 			{
-				Locker l(m_);
+				Locker l(this);
 				if (first)
 				{
 					memset(p_, 0, internalsize());
@@ -241,7 +241,7 @@ namespace Ambiesoft {
 
 		virtual void set(const T& t) {
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			memcpy(p_, &t, size());
 		}
 
@@ -255,9 +255,9 @@ namespace Ambiesoft {
 		class Locker {
 		public:
 			HANDLE m_;
-			Locker(HANDLE m) {
-				m_ = m;
-				WaitForSingleObject(m, INFINITE);
+			Locker(CSessionGlobalMemory* pThis) {
+				m_ = pThis->m_;
+				WaitForSingleObject(m_, INFINITE);
 			}
 			~Locker() {
 				AMBIESOFT_VERIFY(ReleaseMutex(m_));
@@ -321,12 +321,12 @@ namespace Ambiesoft {
 		}
 		void get(unsigned char* p) {
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			memcpy(p, (unsigned char*)(p_)+sizeof(size_), size());
 		}
 		void internalget(size_t32* ps) {
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			*ps = *(size_t32*)p_;
 		}
 
@@ -335,7 +335,7 @@ namespace Ambiesoft {
 			assert(size_ != -1);
 
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			*(size_t32*)p_ = size();
 			memcpy((unsigned char*)(p_)+sizeof(size_), p, size());
 		}

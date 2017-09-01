@@ -128,18 +128,24 @@ void testwriter(int span)
 	}
 }
 
+void test1();
 void test2();
 void test3();
 int main(int argc, char* argv[])
 {
 	if (argc > 1 )
 	{
+		if (strcmp(argv[1], "test1") == 0)
+		{
+			test2();
+			return 0;
+		}
 		if (strcmp(argv[1], "test2") == 0)
 		{
 			test2();
 			return 0;
 		}
-		else if (strcmp(argv[1], "test3") == 0)
+		if (strcmp(argv[1], "test3") == 0)
 		{
 			test3();
 			return 0;
@@ -175,24 +181,18 @@ int main(int argc, char* argv[])
 	CSessionGlobalMemory<Data> sgData("sgData");
 	CSessionGlobalMemoryNTS<Data> sgDataNTS("sgData");
 
-	//CSessionGlobalMemory<Data> tmp(sgData);
-	CSessionGlobalMemory<int> tmp2 (getSGMEM(3, "sgINT"));
-	CSessionGlobalMemory<int> tmp3 (getSGMEM(3, "sgINTtmp"));
-	tmp3=tmp2;
-#if !defined(AMBIESOFT_NO_RVALUE_)
-	tmp2=std::move(tmp3);
-	tmp2=9999;
-#endif
-	std::string sa = "aaa";
-	std::string sb;
-#if !defined(AMBIESOFT_NO_RVALUE_)
-	sb = std::move(sa);
-#endif
-	sb = "bbb";
 	bool quit=false;
 	for(; !quit;)
 	{
-		printf("\nPush 'a' to assign data, 'r' to read data, '0' to launch reader, '1' to launch writer,  and 'q' to quit.\n");
+		printf("\n"
+			"'a' to assign fixed size data\n"
+			"'r' to read fixed size data\n"
+			"'0' to launch fixed size reader\n"
+			"'1' to launch fixed size writer\n"
+			"'q' to quit.\n"
+			">"
+			);
+
 		switch(int ch=_getch())
 		{
 			case '0': case '1':
@@ -305,6 +305,25 @@ public:
 	}
 
 };
+
+void test1()
+{
+
+	//CSessionGlobalMemory<Data> tmp(sgData);
+	CSessionGlobalMemory<int> tmp2(getSGMEM(3, "sgINT"));
+	CSessionGlobalMemory<int> tmp3(getSGMEM(3, "sgINTtmp"));
+	tmp3 = tmp2;
+#if !defined(AMBIESOFT_NO_RVALUE_)
+	tmp2 = std::move(tmp3);
+	tmp2 = 9999;
+#endif
+	std::string sa = "aaa";
+	std::string sb;
+#if !defined(AMBIESOFT_NO_RVALUE_)
+	sb = std::move(sa);
+#endif
+	sb = "bbb";
+}
 
 void test2()
 {
