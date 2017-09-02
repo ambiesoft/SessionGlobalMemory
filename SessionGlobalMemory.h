@@ -63,6 +63,16 @@ namespace Ambiesoft {
 #endif
 			init(pName);
 		}
+		CSessionGlobalMemory(LPCSTR pName, const T& t)
+		{
+#ifdef _DEBUG
+			initialized_ = 0;
+#endif
+
+			init(pName);
+			set(t);
+		}
+
 		CSessionGlobalMemory(const MYT& rhv)
 		{
 #ifdef _DEBUG
@@ -126,7 +136,7 @@ namespace Ambiesoft {
 
 		operator T() {
 			ensure();
-			Locker l(m_);
+			Locker l(this);
 			//T t;
 			//memcpy(&t, p_, sizeof(t));
 

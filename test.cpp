@@ -131,10 +131,20 @@ void testwriter(int span)
 void test1();
 void test2();
 void test3();
+void test4();
 int main(int argc, char* argv[])
 {
 	if (argc > 1 )
 	{
+
+		if (strcmp(argv[1], "testall") == 0)
+		{
+			test1();
+			test2();
+			test3();
+			test4();
+			return 0;
+		}
 		if (strcmp(argv[1], "test1") == 0)
 		{
 			test2();
@@ -148,6 +158,11 @@ int main(int argc, char* argv[])
 		if (strcmp(argv[1], "test3") == 0)
 		{
 			test3();
+			return 0;
+		}
+		if (strcmp(argv[1], "test4") == 0)
+		{
+			test4();
 			return 0;
 		}
 	}
@@ -360,4 +375,18 @@ void test3()
 		assert(p[0] == 11);
 		assert(p[999] == 99);
 	}
+}
+
+void test4()
+{
+	CSessionGlobalMemory<bool> sgb("sgb", true);
+	if (sgb)
+		sgb = false;
+
+	assert(!sgb);
+
+	sgb = !sgb;
+
+	assert(sgb);
+
 }
