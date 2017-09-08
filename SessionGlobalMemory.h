@@ -31,6 +31,7 @@
 #pragma once
 
 #include <cassert>
+#include <string>
 
 #define size_t size_is_not_used_since_its_size_is_different_between_32_and_64
 
