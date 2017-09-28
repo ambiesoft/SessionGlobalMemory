@@ -275,6 +275,7 @@ namespace Ambiesoft {
 				AMBIESOFT_VERIFY(ReleaseMutex(m_));
 			}
 		};
+		friend class Locker;
 
 	protected:
 		bool first_;
