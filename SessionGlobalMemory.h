@@ -74,7 +74,9 @@ namespace Ambiesoft {
 			init(pName);
 			set(t);
 		}
-
+		virtual ~CSessionGlobalMemory() {
+			release();
+		}
 		CSessionGlobalMemory(const MYT& rhv)
 		{
 #ifdef _DEBUG
@@ -115,9 +117,7 @@ namespace Ambiesoft {
 			return *this;
 		}
 
-		virtual ~CSessionGlobalMemory() {
-			release();
-		}
+
 		void move(MYT&& rhv) {
 			m_pName = rhv.m_pName;
 			rhv.m_pName = NULL;
