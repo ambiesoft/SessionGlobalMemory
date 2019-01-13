@@ -136,7 +136,7 @@ namespace Ambiesoft {
 		}
 #endif
 
-		operator T() {
+		operator T() const {
 			ensure();
 			Locker l(this);
 			//T t;
@@ -145,7 +145,7 @@ namespace Ambiesoft {
 			return *((T*)p_);
 		}
 
-		virtual void get(T& t) {
+		virtual void get(T& t) const {
 			ensure();
 			Locker l(this);
 			memcpy(&t, p_, size());
@@ -204,7 +204,7 @@ namespace Ambiesoft {
 			AMBIESOFT_VERIFY_ZERO(LocalFree(m_pName));
 			AMBIESOFT_VERIFY_ZERO(LocalFree(m_pMutexName));
 		}
-		void ensure() {
+		void ensure() const {
 			if (!m_)
 			{
 				m_ = CreateMutexA(NULL, FALSE, m_pMutexName);
@@ -267,7 +267,7 @@ namespace Ambiesoft {
 		class Locker {
 		public:
 			HANDLE m_;
-			Locker(CSessionGlobalMemory* pThis) {
+			Locker(const CSessionGlobalMemory* pThis) {
 				m_ = pThis->m_;
 				WaitForSingleObject(m_, INFINITE);
 			}
@@ -279,11 +279,11 @@ namespace Ambiesoft {
 
 	protected:
 		bool first_;
-		HANDLE h_;
-		HANDLE m_;
+		mutable HANDLE h_;
+		mutable HANDLE m_;
 		LPSTR m_pName;
 		LPSTR m_pMutexName;
-		void* p_;
+		mutable void* p_;
 		// prohibitted, use NTS
 		// T* operator &() {}
 	};
